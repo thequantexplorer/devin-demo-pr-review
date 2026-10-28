@@ -11,7 +11,11 @@ More demos: [devin-advanced-demos](https://github.com/thequantexplorer/devin-adv
 1. Click **Use this template → Create a new repository** (or fork it) into your own GitHub account or org.
    - Tick **Include all branches**. The PR under review lives on `feat/refunds-and-webhooks`. A fork made with `gh repo fork thequantexplorer/devin-demo-pr-review --clone` copies it too.
 2. In Devin, open [**Settings → Connections → GitHub**](https://app.devin.ai/settings/connections/github) and make sure Devin can access the new repository.
-3. Open the PR to review:
+3. Open the pull request that Devin will review. In a browser, go to
+
+   `https://github.com/<you>/devin-demo-pr-review/compare/main...feat/refunds-and-webhooks`
+
+   That page shows the changes on the `feat/refunds-and-webhooks` branch. Click **Create pull request**. From a terminal you can run this instead:
 
    ```sh
    gh pr create --repo <you>/devin-demo-pr-review --base main --head feat/refunds-and-webhooks \
