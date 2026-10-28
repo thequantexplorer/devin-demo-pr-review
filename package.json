@@ -1,0 +1,17 @@
+{
+  "name": "acme-payments-gateway",
+  "version": "0.9.0",
+  "private": true,
+  "description": "Thin gateway in front of the card processor: charges, captures, refunds, webhooks",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0"
+  }
+}
