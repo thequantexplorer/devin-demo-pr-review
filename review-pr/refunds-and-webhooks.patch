@@ -1,0 +1,116 @@
+diff --git a/src/app.js b/src/app.js
+index 3363e51..a119e5a 100644
+--- a/src/app.js
++++ b/src/app.js
+@@ -3,9 +3,11 @@ const { requireMerchant } = require('./lib/auth');
+ 
+ function createApp() {
+   const app = express();
++  app.use('/v1/webhooks', require('./routes/webhooks'));
+   app.use(express.json());
+   app.get('/health', (req, res) => res.json({ ok: true }));
+   app.use('/v1/charges', requireMerchant, require('./routes/charges'));
++  app.use('/v1/refunds', requireMerchant, require('./routes/refunds'));
+   return app;
+ }
+ 
+diff --git a/src/routes/refunds.js b/src/routes/refunds.js
+new file mode 100644
+index 0000000..b1166ae
+--- /dev/null
++++ b/src/routes/refunds.js
+@@ -0,0 +1,29 @@
++const express = require('express');
++const crypto = require('crypto');
++const { charges, refunds } = require('../lib/db');
++const log = require('../lib/log');
++
++const router = express.Router();
++
++// POST /v1/refunds { chargeId, amountCents, reason }
++router.post('/', (req, res) => {
++  const { chargeId, amountCents, reason } = req.body || {};
++  const charge = charges.get(chargeId);
++  if (!charge) return res.status(404).json({ error: 'charge not found' });
++  if (!Number.isInteger(amountCents) || amountCents <= 0) return res.status(400).json({ error: 'amountCents must be positive' });
++
++  const refund = {
++    id: 're_' + crypto.randomBytes(6).toString('hex'),
++    chargeId,
++    amountCents,
++    reason: reason || 'requested_by_customer',
++    status: 'succeeded',
++  };
++  charge.refundedCents += amountCents;
++  if (charge.refundedCents === charge.amountCents) charge.status = 'refunded';
++  refunds.set(refund.id, refund);
++  log.info('refund.created', { refund, charge });
++  res.status(201).json(refund);
++});
++
++module.exports = router;
+diff --git a/src/routes/webhooks.js b/src/routes/webhooks.js
+new file mode 100644
+index 0000000..1296627
+--- /dev/null
++++ b/src/routes/webhooks.js
+@@ -0,0 +1,28 @@
++const express = require('express');
++const crypto = require('crypto');
++const { charges, merchants } = require('../lib/db');
++const log = require('../lib/log');
++
++const router = express.Router();
++
++// Processor -> gateway callbacks. Header: X-Acme-Signature: <hex hmac-sha256 of body>
++router.post('/:merchantId', express.json(), (req, res) => {
++  const merchant = merchants.get(req.params.merchantId);
++  if (!merchant) return res.status(404).end();
++
++  const expected = crypto.createHmac('sha256', merchant.webhookSecret).update(JSON.stringify(req.body)).digest('hex');
++  const given = req.get('x-acme-signature');
++  if (given && given !== expected) return res.status(400).json({ error: 'bad signature' });
++
++  const event = req.body;
++  if (event.type === 'charge.disputed') {
++    const charge = charges.get(event.data.chargeId);
++    if (charge) charge.status = 'disputed';
++  }
++  if (event.type === 'card.updated') {
++    log.info('card.updated', { merchant: merchant.id, card: event.data.card });
++  }
++  res.json({ received: true });
++});
++
++module.exports = router;
+diff --git a/test/refunds.test.js b/test/refunds.test.js
+new file mode 100644
+index 0000000..83a921e
+--- /dev/null
++++ b/test/refunds.test.js
+@@ -0,0 +1,25 @@
++process.env.NODE_ENV = 'test';
++const test = require('node:test');
++const assert = require('node:assert');
++const crypto = require('crypto');
++const request = require('supertest');
++const { createApp } = require('../src/app');
++
++const auth = { Authorization: 'Bearer sk_test_acme' };
++
++test('partial then full refund marks the charge refunded', async () => {
++  const app = createApp();
++  const ch = await request(app).post('/v1/charges').set(auth).send({ amountCents: 1000, card: { number: '4242424242424242' } });
++  await request(app).post('/v1/refunds').set(auth).send({ chargeId: ch.body.id, amountCents: 400 });
++  const r = await request(app).post('/v1/refunds').set(auth).send({ chargeId: ch.body.id, amountCents: 600 });
++  assert.strictEqual(r.status, 201);
++  const after = await request(app).get('/v1/charges/' + ch.body.id).set(auth);
++  assert.strictEqual(after.body.status, 'refunded');
++});
++
++test('webhook with a valid signature is accepted', async () => {
++  const body = { type: 'charge.disputed', data: { chargeId: 'ch_x' } };
++  const sig = crypto.createHmac('sha256', 'whsec_acme_demo').update(JSON.stringify(body)).digest('hex');
++  const res = await request(createApp()).post('/v1/webhooks/m_acme').set('x-acme-signature', sig).send(body);
++  assert.strictEqual(res.status, 200);
++});

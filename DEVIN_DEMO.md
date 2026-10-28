@@ -9,18 +9,19 @@ More demos: [devin-advanced-demos](https://github.com/thequantexplorer/devin-adv
 ## Set it up
 
 1. Click **Use this template → Create a new repository**, choose your GitHub account or org as the owner, and keep the name `devin-demo-pr-review`. The links and prompt below assume that name. Use the template rather than a fork: pull requests on a fork go to the original repo by default.
-   - Turn on **Include all branches**. The PR under review lives on the `feat/refunds-and-webhooks` branch.
 2. In Devin, open [**Settings → Connections → GitHub**](https://app.devin.ai/settings/connections/github) and make sure Devin can access the new repository.
-3. Open the pull request that Devin will review. In a browser, go to
+3. Create the branch with the code under review. Clone your copy and run the script, which creates `feat/refunds-and-webhooks` from `main`, applies `review-pr/refunds-and-webhooks.patch` and pushes it:
+
+   ```sh
+   git clone https://github.com/<you>/devin-demo-pr-review && cd devin-demo-pr-review
+   scripts/create-review-branch.sh
+   ```
+
+4. Open the pull request that Devin will review. In a browser, go to
 
    `https://github.com/<you>/devin-demo-pr-review/pull/new/feat/refunds-and-webhooks`
 
-   That page shows the changes on the `feat/refunds-and-webhooks` branch. Click **Create pull request**. From a terminal you can run this instead:
-
-   ```sh
-   gh pr create --repo <you>/devin-demo-pr-review --base main --head feat/refunds-and-webhooks \
-     --title "Add refunds API and processor webhooks" --body "Adds POST /payments/:id/refunds and processor webhooks."
-   ```
+   and click **Create pull request**.
 
 ## Prompt
 
