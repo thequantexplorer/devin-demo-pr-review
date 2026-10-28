@@ -13,7 +13,7 @@ More demos: [devin-advanced-demos](https://github.com/thequantexplorer/devin-adv
 2. In Devin, open [**Settings → Connections → GitHub**](https://app.devin.ai/settings/connections/github) and make sure Devin can access the new repository.
 3. Open the pull request that Devin will review. In a browser, go to
 
-   `https://github.com/<you>/devin-demo-pr-review/compare/main...feat/refunds-and-webhooks`
+   `https://github.com/<you>/devin-demo-pr-review/pull/new/feat/refunds-and-webhooks`
 
    That page shows the changes on the `feat/refunds-and-webhooks` branch. Click **Create pull request**. From a terminal you can run this instead:
 
