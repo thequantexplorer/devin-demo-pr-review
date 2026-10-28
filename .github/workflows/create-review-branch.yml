@@ -1,0 +1,15 @@
+name: Create review branch
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Push feat/refunds-and-webhooks
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          scripts/create-review-branch.sh
+          echo "Open https://github.com/${{ github.repository }}/pull/new/feat/refunds-and-webhooks and click Create pull request." >> "$GITHUB_STEP_SUMMARY"

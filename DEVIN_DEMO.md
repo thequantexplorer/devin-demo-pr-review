@@ -10,12 +10,11 @@ More demos: [devin-advanced-demos](https://github.com/thequantexplorer/devin-adv
 
 1. Click **Use this template → Create a new repository**, choose your GitHub account or org as the owner, and keep the name `devin-demo-pr-review`. The links and prompt below assume that name. Use the template rather than a fork: pull requests on a fork go to the original repo by default.
 2. In Devin, open [**Settings → Connections → GitHub**](https://app.devin.ai/settings/connections/github) and make sure Devin can access the new repository.
-3. Create the branch with the code under review. Clone your copy and run the script, which creates `feat/refunds-and-webhooks` from `main`, applies `review-pr/refunds-and-webhooks.patch` and pushes it:
+3. Create the branch with the code under review. In your copy on GitHub, open
 
-   ```sh
-   git clone https://github.com/<you>/devin-demo-pr-review && cd devin-demo-pr-review
-   scripts/create-review-branch.sh
-   ```
+   `https://github.com/<you>/devin-demo-pr-review/actions/workflows/create-review-branch.yml`
+
+   click **Run workflow**, then the green **Run workflow** button in the menu. When the run has a green check (about 20 seconds), your copy has a `feat/refunds-and-webhooks` branch made from `main` with `review-pr/refunds-and-webhooks.patch` applied. (If you prefer a terminal, `scripts/create-review-branch.sh` in a clone does the same thing.)
 
 4. Open the pull request that Devin will review. In a browser, go to
 
